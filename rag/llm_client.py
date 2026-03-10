@@ -1,3 +1,4 @@
+#changed the model to Qwen/Qwen2.5-7B-Instruct, which is a smaller model that should be more efficient for our use case.
 from huggingface_hub import InferenceClient
 import os
 
