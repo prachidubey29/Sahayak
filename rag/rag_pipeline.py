@@ -11,7 +11,6 @@ pages = load_pdf_by_page("data/Annual-Report-2024-25.pdf")
 chunks = chunk_pages(pages)
 collection = create_vector_store(chunks)
 
-
 def answer_question(question: str) -> str:
     results = collection.query(
         query_texts=[question],
