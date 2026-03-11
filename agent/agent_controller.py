@@ -1,9 +1,12 @@
-from agent.intent_router import is_action_request
 from rag.rag_pipeline import answer_question
-from actions.action_handler import generate_action
+from actions.action_handler import handle_action
 
-def handle_user_input(user_input: str) -> str:
-    if is_action_request(user_input):
-        return generate_action(user_input)
+def handle_user_input(user_input: str, session_id: str) -> str:
+    if is_action(user_input):
+        return handle_action(user_input, session_id)  # ✅ session_id passed
     else:
-        return answer_question(user_input)
+        return answer_question(user_input, session_id)
+
+def is_action(text: str) -> bool:
+    action_keywords = ["schedule", "create", "book", "raise", "ticket"]
+    return any(word in text.lower() for word in action_keywords)

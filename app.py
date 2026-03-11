@@ -1,20 +1,47 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import streamlit as st
+import uuid
 from agent.agent_controller import handle_user_input
+from memory.redis_memory import clear_history
 
-st.set_page_config(page_title="Agentic Enterprise Assistant")
+# Page title
+st.title("Sahayak - Enterprise Assistant")
 
-st.title("Agentic Enterprise Assistant")
+# Initialize session
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
 
-user_input = st.text_input("Ask a question or give a command:")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-if st.button("Submit") and user_input:
-    with st.spinner("Processing..."):
-        response = handle_user_input(user_input)
+# Clear memory button
+if st.button("🗑️ Clear Memory"):
+    clear_history(st.session_state.session_id)
+    st.session_state.messages = []  # also clear UI chat history
+    st.success("Memory cleared!")
 
-    # Simple detection: JSON responses start with "{"
-    if response.strip().startswith("{"):
-        st.subheader("Action Output (JSON)")
-        st.code(response, language="json")
-    else:
-        st.subheader("Answer")
+# Display chat history
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.write(msg["content"])
+
+# Chat input (only one!)
+user_input = st.chat_input("Ask a question:")
+
+if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.write(user_input)
+
+    with st.spinner("Thinking..."):
+        response = handle_user_input(
+            user_input,
+            st.session_state.session_id
+        )
+
+    st.session_state.messages.append({"role": "assistant", "content": response})
+    with st.chat_message("assistant"):
         st.write(response)
