@@ -1,33 +1,59 @@
-# Agentic Enterprise Assistant
+# 🤖 Agentic Enterprise Assistant
 
-A reliability-first AI assistant that combines Retrieval-Augmented Generation (RAG) with lightweight agentic routing to answer enterprise document queries with page-level citations and generate structured JSON outputs for workflow automation commands.
-
----
-
-## Key Features
-
-* Citation-grounded document question answering
-* Hallucination guardrails for safe responses
-* Intent-based routing between information and action modes
-* Deterministic JSON outputs for enterprise workflows
-* Simple Streamlit-based user interface
+A reliability-first AI assistant that combines **Retrieval-Augmented Generation (RAG)** with lightweight **agentic routing** and **Redis-based memory persistence** to answer enterprise document queries with page-level citations and generate structured JSON outputs for workflow automation.
 
 ---
 
-## Tech Stack
+## 🚀 Key Features
 
-* **IDE:** GitHub Codespaces
-* **UI:** Streamlit
-* **PDF Parsing:** PyPDF
-* **Chunking:** LangChain Text Splitters
-* **Embeddings:** sentence-transformers/all-MiniLM-L6-v2
-* **Vector Database:** ChromaDB
-* **LLM:** Hugging Face Inference API (Mistral-7B-Instruct)
-* **Agent Logic:** Custom Python routing
+* 📄 Citation-grounded document question answering
+* 🛡️ Hallucination guardrails for safe responses
+* 🔀 Intent-based routing (Information vs Action mode)
+* 🧾 Deterministic JSON outputs for enterprise workflows
+* 🧠 **Memory persistence using Redis for context-aware conversations**
+* ⚡ Fast and scalable architecture
+* 🎯 Simple Streamlit-based UI
 
 ---
 
-## Project Structure
+## 🧠 Memory Architecture (Redis)
+
+To enable **context-aware and stateful interactions**, the system integrates **Redis as an in-memory session store**.
+
+### 🔧 How it works
+
+* Each user session is assigned a **unique key**
+* Conversation history and relevant context are stored in **Redis**
+* On every query:
+
+  * Previous interactions are retrieved from Redis
+  * Combined with the current query before processing
+* Updated context is written back to Redis
+
+### 📈 Benefits
+
+* ⚡ Low-latency memory retrieval
+* 🔄 Persistent conversational context
+* 📊 Scalable for multiple concurrent users
+* 🧩 Clean separation of memory and AI logic
+
+---
+
+## 🛠️ Tech Stack
+
+* **IDE**: GitHub Codespaces
+* **UI**: Streamlit
+* **PDF Parsing**: PyPDF
+* **Chunking**: LangChain Text Splitters
+* **Embeddings**: sentence-transformers/all-MiniLM-L6-v2
+* **Vector Database**: ChromaDB
+* **LLM**: Hugging Face Inference API (**Qwen/Qwen2.5-7B-Instruct**)
+* **Memory Store**: Redis
+* **Agent Logic**: Custom Python routing
+
+---
+
+## 📂 Project Structure
 
 ```
 agentic-enterprise-assistant/
@@ -38,35 +64,40 @@ agentic-enterprise-assistant/
 ├── rag/                   # Vector store and RAG pipeline
 ├── agent/                 # Intent router and controller
 ├── actions/               # Action prompts and handlers
+├── memory/                # Redis integration (session storage)
 └── README.md              # Project summary
 ```
 
 ---
 
-## Setup
+## ⚙️ Setup
 
-1. Open the repository in **GitHub Codespaces**
-2. Install dependencies:
+### 1️⃣ Open in Codespaces
 
-```
+Open the repository in **GitHub Codespaces**
+
+### 2️⃣ Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-3. Add Hugging Face token as Codespaces secret:
+### 3️⃣ Add secrets
 
-```
-HF_TOKEN=<your_token>
+```bash
+HF_TOKEN=<your_huggingface_token>
+REDIS_URL=<your_redis_connection_string>
 ```
 
-4. Run the application:
+### 4️⃣ Run the application
 
-```
+```bash
 streamlit run app.py
 ```
 
 ---
 
-## System Architecture
+## 🏗️ System Architecture
 
 ```
 ┌─────────────────────────────┐
@@ -91,58 +122,64 @@ streamlit run app.py
        ▼                    ▼
 ┌──────────────────┐   ┌──────────────────┐
 │  ChromaDB Vector │   │ HuggingFace LLM  │
-│  Store (Embeds)  │   │ (Mistral-Instruct│
+│  Store (Embeds)  │   │ (Qwen2.5-7B)     │
 └──────┬───────────┘   └────────┬─────────┘
        │ Retrieved Chunks        │ JSON Output
        ▼                         ▼
 ┌─────────────────────────────┐
-│ Citation-Grounded Answer OR │
-│ Deterministic Action JSON   │
+│ Citation Answer OR Action   │
+│ JSON + Context from Redis   │
 └─────────────────────────────┘
 ```
 
 ---
 
-## How It Works
+## 🔄 How It Works
 
 1. User enters a query in the Streamlit interface
-2. Intent router classifies query:
+2. **Intent router** classifies query:
 
    * Informational → RAG pipeline
    * Action → JSON action generator
-3. RAG retrieves relevant document chunks from ChromaDB
-4. LLM generates citation-grounded response
-5. Action requests return structured JSON
+3. Redis retrieves **previous session context**
+4. RAG retrieves relevant chunks from ChromaDB
+5. LLM generates:
+
+   * Citation-grounded answer OR
+   * Structured JSON action
+6. Updated context is stored back in Redis
 
 ---
 
-## Demo Queries
+## 💡 Demo Queries
 
-### Document Queries
+### 📄 Document Queries
 
 * What are the key risks mentioned in the report?
 * What initiatives are mentioned for digital transformation?
 
-### Action Commands
+### ⚙️ Action Commands
 
 * Schedule a meeting with HR tomorrow at 3 PM
 * Create an IT ticket for laptop not turning on, high priority
 
-### Hallucination Guardrail
+### 🛡️ Hallucination Guardrail
 
 * Who is the CEO of Google?
 
 ---
 
-## Output Examples
+## 📤 Output Examples
 
 ### Citation-Grounded Answer
 
+```
 "The report identifies key risks including global economic uncertainty and market volatility, discussed on Pages 45 and 46."
+```
 
 ### Action JSON
 
-```
+```json
 {
   "action": "create_it_ticket",
   "issue": "Laptop not turning on",
@@ -152,6 +189,23 @@ streamlit run app.py
 
 ---
 
-## Conclusion
+## 📈 Future Improvements
 
-The Agentic Enterprise Assistant demonstrates an enterprise-ready AI system that ensures accuracy, transparency, and deterministic automation through RAG and agentic control.
+* ⏳ TTL-based memory expiration in Redis
+* 🧠 Long-term vs short-term memory separation
+* 🔍 Vector-based semantic memory retrieval
+* 📊 Monitoring & analytics dashboard
+
+---
+
+## 🧾 Conclusion
+
+The Agentic Enterprise Assistant demonstrates an **enterprise-ready AI system** combining:
+
+* Reliable RAG pipelines
+* Deterministic agentic workflows
+* Scalable Redis-based memory
+
+to deliver **accurate, transparent, and context-aware AI interactions**.
+
+---
